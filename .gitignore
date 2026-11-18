@@ -1,0 +1,16 @@
+# build output
+dist/*
+!dist/.gitkeep
+
+# editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# secrets — never commit credentials or keys
+*.pem
+*.key
+.env
+.env.*
+bin/
