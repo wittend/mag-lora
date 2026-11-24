@@ -1,24 +1,30 @@
 # Requirements
 
-What this project is for, what it must do, and what it deliberately does not.
-Keep this file current as the project evolves — it is the reference for
-deciding what to build and what to skip.
-
 ## Goals
 
-- A project for creating a remote sensor for gathering data from the RM-3100CM sensor module via a LoRa RF signalling.
-- (Add the specific outcomes this project must deliver.)
+ A project for creating a remote sensor for gathering data from the RM-3100CM sensor module via a LoRa RF signalling.
+
+### The deliverable items for this project are:
+* A prototype design for a remotely operating data collection and transfer device that supports the PNI-RM3100CM module for field deployment.
+* Firmware to make this device interoperable with the HAMSci Personal Space Weather Station and similar projects.
+* Host-side hardware for the reception of the transmitted data.
+* Host-side firmware for decoding data And interface to the HamSCI mag-usb software.
+* A cost-conscious, production ready design for both host-side and remote-side hardware.
 
 ## Constraints
 
-- Personal project, maintained by one person — prefer boring, standard
-  tooling.
-- (Add hard constraints: runtime, platform, privacy, compatibility.)
+* Personal project, maintained by one person. 
+* Prefer boring, standard tooling.
+* C++ firmware.
+* ESP32-S3 platform.
+* Platformio Library Framework
+* Compatibility with LoRA signalling.
+* National and international emissions compliance.
 
 ## Non-goals
 
-- (List things this project explicitly will not do, so future decisions are
-  easy. Example: "no multi-tenant features", "no cloud dependencies".)
+* Best effort delivery.
+* No authentication.
 
 ## Notes
 
