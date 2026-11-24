@@ -1,6 +1,8 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
+**Last updated:** 2026-11-23 — xiao sub-repo housekeeping (commit `5e2870d`); all repos pushed to Gitea + GitHub.
+**Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
 
@@ -66,7 +68,6 @@ SX1262 driver, host JSON decoder, bench `Makefile`
   LiFePO4 + PVC enclosure), range evaluation, CI/artifacting (REQ-015).
 - ⚠️ **No KiCad PCB design exists yet** — the folder name says "kicad", but
   there are no `.kicad_pro/.sch/.pcb` files; only docs + datasheets.
-- ⚠️ Repo hygiene (local, uncommitted): `requirements/xaio-mag-ora_…` →
   `xaio-mag-lora_…` rename staged; the xiao README still references the old
   filename in two places.
 - 160 MB on disk is the gitignored `.pio` toolchain cache, not source.
@@ -100,18 +101,19 @@ production form-factor target).
 9. Range evaluation to the ≤1 km LoS target (REQ-017).
 
 **C. Housekeeping:**
-10. xiao repo: commit the requirements-file rename; fix the two stale
+10. Decide the fate of `wio-mag-lora`: delete it, or keep it as the home for
     `xaio-mag-ora` references in its README.
 11. Decide the fate of `wio-mag-lora`: delete it, or keep it as the home for
     the later Wio-S3 production variant (in which case it needs its own
     remotes and real content).
-12. Add CI to the xiao repo (REQ-015) — at minimum `run_host_test.sh` +
+11. Add CI to the xiao repo (REQ-015) — at minimum `run_host_test.sh` +
     `decode.py --selftest` + `pio run -e native`.
-13. Fill in the completion-report evidence (sections 3–4) in
+12. Fill in the completion-report evidence (sections 3–4) in
     `kicad/xiao-mag-lora/project-docs/02-completion-report.md` as each
     requirement verifies.
-14. Start the KiCad design when the Wio-S3 modules arrive (production form
+13. Start the KiCad design when the Wio-S3 modules arrive (production form
     factor).
 
-**D. Push policy:** nothing has been pushed in this session; all umbrella
-commits are local on `main`. Push to Gitea/GitHub when ready.
+**D. Push policy:** everything in this session is pushed to both remotes
+(umbrella `mag-lora` and `xiao-mag-lora`, Gitea + GitHub). Keep pushing
+as work lands.
