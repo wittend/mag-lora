@@ -14,3 +14,8 @@ dist/*
 .env
 .env.*
 bin/
+
+# Nested standalone sub-project repos (own history + remotes; not part of this repo)
+# See kicad/README.md.
+kicad/xiao-mag-lora/
+kicad/wio-mag-lora/
