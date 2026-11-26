@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-26 — host receiver started: `kicad/host-mag-usb` sub-project (initial commit `fb08706`, from the `USBStick-MagExtender` power-rail seed; requirements + README). Phase 1 prep (teardown checklist + xiao-carrier scaffold) landed earlier the same day. All repos pushed.
+**Last updated:** 2026-11-26 — mag-usb interop research done (host-mag-usb `b702b48`, `docs/magusb_interop.md`): **Q1 answered — Option A**: the dongle emulates the Pololu USB-I²C adapter + RM3100 + MCP9808, so stock mag-usb / mag-recorder / gmag_webui run unmodified. Earlier today: `host-mag-usb` sub-project created; Phase 1 prep (teardown checklist + xiao-carrier scaffold). All repos with remotes pushed.
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -94,8 +94,13 @@ Standalone sub-repo (`fb08706`, no remotes yet). Seeded from Dave's
 power-rail skeleton: USB-C VBUS → AMS1117-3.3, ferrite bead, LEDs) —
 renamed to `host-mag-usb` and brought into the project. Vendor USB-C/ESD
 component libs retained (2sayle template origin, no upstream LICENSE —
-noted in its README). Requirements written (Q1 interop surface / Q2 MCU /
-Q3 antenna / Q4 TX scope open). ERC/DRC: only skeleton-typical noise
+noted in its README). **Q1 (interop surface) answered 2026-11-26** —
+`docs/magusb_interop.md`: Option A — the dongle emulates the Pololu USB-I²C
+adapter (115200 CDC-ACM) + RM3100 (0x20) + MCP9808, so stock mag-usb,
+mag-recorder, and gmag_webui run **unmodified**; fallback B (patch mag-usb)
+with a dongle input backend; bench path C (host-side JSONL relay) first.
+Q4 narrowed (RX-only v1 viable); Q2 (MCU) / Q3 (antenna) still open.
+ERC/DRC: only skeleton-typical noise
 (lib resync mismatches, text style, unconnected pads).
 
 ## 3. Recommended next steps
@@ -126,9 +131,10 @@ Q3 antenna / Q4 TX scope open). ERC/DRC: only skeleton-typical noise
 11. Phase 2: wio carrier (production form factor) — port the
     power/RF/sensor/GNSS blocks onto the Wio-S3 connector.
 12. Phase 3: host receiver — `kicad/host-mag-usb` started (power-rail
-    skeleton + requirements). Resolve its Q1–Q4 (interop surface, MCU,
-    antenna, TX scope), then schematic capture; an off-the-shelf USB LoRa
-    dongle can shortcut the mag-usb interop test in parallel.
+    skeleton + requirements). Q1 answered (emulate Pololu + RM3100 +
+    MCP9808, stock mag-usb unmodified); open Q2 (MCU) / Q3 (antenna) →
+    schematic capture. First interop test: bench a host-side JSONL relay
+    against mag-recorder.
 
 **D. Housekeeping:**
 13. Create Gitea/GitHub remotes for `wio-mag-lora` (kept as the home of
