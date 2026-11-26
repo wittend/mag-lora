@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-25 — asset reorg + dedupe (xiao `f66edea`), requirements deltas (xiao `e060186`), wio initial commit (`6b2fefd`), L76K PCN reviewed (no design impact), PCB design plan added (`docs/pcb_design_plan.md`).
+**Last updated:** 2026-11-26 — Phase 1 prep in xiao: P1/P1-Pro teardown checklist (`2a29a0c`) + `kicad/xiao-carrier` KiCad 10 scaffold (`974a038`). All repos pushed.
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -74,9 +74,10 @@ fix-LED removed only — pin/electrical interface unchanged.
   GNSS on-device verification, WiFi/BLE provisioning (off in normal op),
   Linux host client, SPA web app, history storage, field node (solar +
   LiFePO4 + PVC enclosure), range evaluation, CI/artifacting (REQ-015).
-- ⚠️ **No KiCad PCB design exists yet** — no `.kicad_pro/.sch/.pcb` files
-  yet, but the design inputs (symbols, footprints, reference designs) are
-  in place; plan in the umbrella `docs/pcb_design_plan.md`.
+- 🏗️ **KiCad project scaffolded** (`kicad/xiao-carrier`, KiCad 10, 5 subsystem
+  sheets, lib tables) — schematic capture not started. Footprint gap: **L76K
+  (109100021) not in the OPL library**; XIAO ESP32-S3 + Wio-SX1262 available
+  there. Teardown decisions D1/D5 may reshape scope before capture.
 - 160 MB on disk is the gitignored `.pio` toolchain cache, not source.
 
 ### 2.3 `wio-mag-lora` (production variant)
@@ -108,12 +109,13 @@ form factor; xiao remains the active bench/PoC path.
 9. Range evaluation to the ≤1 km LoS target (REQ-017).
 
 **C. PCB design (plan: `docs/pcb_design_plan.md`):**
-10. Phase 1: P1-Pro teardown (Q5) + xiao carrier v1 around parts already
-    in hand; bench the carrier before ordering new hardware.
+10. Phase 1: xiao carrier v1 — KiCad project scaffolded (`kicad/xiao-carrier`);
+    run the P1 teardown (checklist in xiao `docs/`), then schematic capture.
 11. Phase 2: wio carrier (production form factor) — port the
     power/RF/sensor/GNSS blocks onto the Wio-S3 connector.
 12. Phase 3: host receiver — off-the-shelf USB LoRa dongle for the
-    mag-usb interop test; custom board only if production demands it.
+    mag-usb interop test. Existing USB-dongle KiCad template: `USBStick-MagExtender`
+    in `~/Projects/KiCad-dev/` (STM32F730 + USB-C + microSD).
 
 **D. Housekeeping:**
 13. Create Gitea/GitHub remotes for `wio-mag-lora` (kept as the home of
