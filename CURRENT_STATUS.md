@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-26 — host-mag-usb decisions recorded (`813d98c`): **Q2 = ESP32-S3** (in-field config via WiFi + node parity), **Q4 = RX-only v1** (TX kept for future re-provisioning). Earlier today: mag-usb interop research done (`b702b48`) — **Q1 = Option A** (dongle emulates Pololu USB-I²C + RM3100 + MCP9808; stock PSWS stack unmodified); `host-mag-usb` sub-project created; Phase 1 prep (teardown checklist + xiao-carrier scaffold). All repos with remotes pushed.
+**Last updated:** 2026-11-26 — `host-mag-usb` **schematic v1 generated + netlist-verified** (`71d0d83`): `tools/gen_schematic.py` builds the full sheet from a declarative pin-map; `kicad-cli` netlist export matches `docs/dongle_design.md` rail-by-rail (VBUS → F1 → +3.3V → U3 → +3.3VA; SPI through 47R series; USB-C through ESD; all LORA nets correct). Also: **Q3 decided — IPEX + whip/pigtail** (requirements). Earlier today: Q2 = ESP32-S3 (`813d98c`), Q1 = Option A mag-usb interop (`b702b48`).
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -18,7 +18,7 @@ mag-lora/                          ← umbrella repo (this one)
     ├── README.md                  layout doc for the sub-projects
     ├── xiao-mag-lora/             ← standalone repo (active project)
     ├── wio-mag-lora/              ← standalone repo (production variant; initial commit, no remotes)
-    └── host-mag-usb/              ← standalone repo (host receiver; initial commit, no remotes)
+    └── host-mag-usb/              ← standalone repo (host receiver; schematic v1, no remotes)
 ```
 
 | Repo | Remotes | Role |
@@ -26,7 +26,7 @@ mag-lora/                          ← umbrella repo (this one)
 | `mag-lora` (umbrella) | Gitea `dave/mag-lora` · GitHub `wittend/mag-lora` | Shared requirements, cross-cutting docs, future Linux host client |
 | `kicad/xiao-mag-lora` | Gitea `dave/xiao-mag-lora` · GitHub `wittend/xiao-mag-lora` | **The active project** — node firmware + host decoder + design docs |
 | `kicad/wio-mag-lora` | — (no remotes yet) | Wio-S3 production variant — requirements + reference assets committed 2026-11-25 |
-| `kicad/host-mag-usb` | — (no remotes yet) | Host-side LoRa receiver USB dongle (Phase 3) — power-rail skeleton + requirements, 2026-11-26 |
+| `kicad/host-mag-usb` | — (no remotes yet) | Host-side LoRa receiver USB dongle (Phase 3) — schematic v1 generated 2026-11-26 (`71d0d83`) |
 
 The umbrella intentionally does **not** track the sub-project repos (see
 `kicad/README.md`); each keeps its own history and remotes.
@@ -100,10 +100,29 @@ adapter (115200 CDC-ACM) + RM3100 (0x20) + MCP9808, so stock mag-usb,
 mag-recorder, and gmag_webui run **unmodified**; fallback B (patch mag-usb)
 with a dongle input backend; bench path C (host-side JSONL relay) first.
 **Q2 decided 2026-11-26: ESP32-S3** (in-field config via WiFi + node parity);
-**Q4 decided: RX-only v1** (TX kept for future re-provisioning); Q3 (antenna)
-still open.
-ERC/DRC: only skeleton-typical noise
-(lib resync mismatches, text style, unconnected pads).
+**Q4 decided: RX-only v1** (TX kept for future re-provisioning);
+**Q3 decided 2026-11-26: IPEX + whip (or IPEX→SMA pigtail)** — the module's own IPEX connector satisfies this.
+
+**Schematic v1 — generated + verified 2026-11-26** (`71d0d83`): `tools/gen_schematic.py`
+writes the full `.kicad_sch` (24 components, 15 embedded lib symbols) from a
+declarative per-component pin-map; `kicad-cli sch export netlist` output matches
+`docs/dongle_design.md` on every net. ERC residual is benign: 33
+`pin_not_connected` = intentional NCs (unused U1 GPIOs, J1 B-row/SBU, U2 ANT);
+75 `endpoint_off_grid` = off-grid symbol geometry (cosmetic); 17
+`footprint_link_issues` = footprints not yet assigned (U2's is authored in
+`Libraries/fplibs.pretty/`). Open: assign footprints, verify U1 pin map against
+the ESP32-S3-MINI-1 datasheet (`[VERIFY-AGAINST-DATASHEET]`), PCB layout.
+
+KiCad 10 gotchas learned while building the generator (worth keeping):
+- embedded `lib_symbols` names must be **qualified** (`Device:C`) to match the
+  instance `lib_id` — bare names break pad resolution;
+- `(italic)` must live inside `(font …)`, not at the `(effects …)` level;
+- the pin's `(at)` point **is** the connection point, and symbol local Y is UP —
+  sheet coords = `(inst_x + px, inst_y − py)`;
+- embedded **alias** symbols (`(extends …)`) don't resolve pins — reference the
+  base symbol (U3 uses `Regulator_Linear:AP1117-15`, value `AMS1117-3.3`);
+- reference numbering must be per-family sequences from 1 (no unnumbered refs)
+  or the sheet carries annotation errors; power symbols need unique `#PWRn` refs.
 
 ## 3. Recommended next steps
 
@@ -132,10 +151,10 @@ ERC/DRC: only skeleton-typical noise
     run the P1 teardown (checklist in xiao `docs/`), then schematic capture.
 11. Phase 2: wio carrier (production form factor) — port the
     power/RF/sensor/GNSS blocks onto the Wio-S3 connector.
-12. Phase 3: host receiver — `kicad/host-mag-usb` started (power-rail
-    skeleton + requirements). Q1 (Option A), Q2 (ESP32-S3), Q4 (RX-only v1)
-    decided; open Q3 (antenna) →
-    schematic capture. First interop test: bench a host-side JSONL relay
+12. Phase 3: host receiver — `kicad/host-mag-usb`: Q1–Q4 all decided (Option A
+    interop, ESP32-S3, IPEX+whip, RX-only v1); **schematic v1 generated +
+    netlist-verified** (`71d0d83`). Next: footprints, U1 pin-map datasheet
+    check, PCB layout. First interop test: bench a host-side JSONL relay
     against mag-recorder.
 
 **D. Housekeeping:**
