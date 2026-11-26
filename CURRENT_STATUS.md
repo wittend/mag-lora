@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-23 — xiao sub-repo housekeeping (commit `5e2870d`); all repos pushed to Gitea + GitHub.
+**Last updated:** 2026-11-25 — asset reorg + dedupe (xiao `f66edea`), requirements deltas (xiao `e060186`), wio initial commit (`6b2fefd`), L76K PCN reviewed (no design impact), PCB design plan added (`docs/pcb_design_plan.md`).
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -11,20 +11,20 @@ Three git repos, nested:
 ```
 mag-lora/                          ← umbrella repo (this one)
 ├── src/                           Go module `maglora` (host client — not started)
-├── docs/ assets/ contrib/ tests/  umbrella-level material (mostly empty)
+├── docs/ assets/ contrib/ tests/  umbrella-level material
 ├── requirements.md                goals / deliverables / constraints / non-goals
 ├── README.md                      umbrella layout + pointers
 └── kicad/                         ← NOT tracked by the umbrella (gitignored)
     ├── README.md                  layout doc for the sub-projects
     ├── xiao-mag-lora/             ← standalone repo (active project)
-    └── wio-mag-lora/              ← standalone repo (dormant, empty)
+    └── wio-mag-lora/              ← standalone repo (production variant; initial commit, no remotes)
 ```
 
 | Repo | Remotes | Role |
 |---|---|---|
 | `mag-lora` (umbrella) | Gitea `dave/mag-lora` · GitHub `wittend/mag-lora` | Shared requirements, cross-cutting docs, future Linux host client |
 | `kicad/xiao-mag-lora` | Gitea `dave/xiao-mag-lora` · GitHub `wittend/xiao-mag-lora` | **The active project** — node firmware + host decoder + design docs |
-| `kicad/wio-mag-lora` | — (no remotes, zero commits) | Dormant early Wio-S3 exploration; docs/datasheets only |
+| `kicad/wio-mag-lora` | — (no remotes yet) | Wio-S3 production variant — requirements + reference assets committed 2026-11-25 |
 
 The umbrella intentionally does **not** track the sub-project repos (see
 `kicad/README.md`); each keeps its own history and remotes.
@@ -32,9 +32,10 @@ The umbrella intentionally does **not** track the sub-project repos (see
 ## 2. Component status
 
 ### 2.1 Umbrella (`mag-lora`)
-- Scaffold + requirements + layout docs. **Host client not started**
+- Scaffold + requirements + layout docs + **`docs/pcb_design_plan.md`**
+  (PCB design sketch, 2026-11-25). **Host client not started**
   (`src/go.mod` exists: module `maglora`, Go 1.24).
-- `tests/`, `docs/`, `assets/`, `contrib/` are placeholders.
+- `tests/`, `assets/`, `contrib/` are placeholders.
 
 ### 2.2 `xiao-mag-lora` (active) — PAUSED since 2026-10-25
 Solar-powered P2P LoRa node on XIAO ESP32-S3 + Wio-SX1262 (Kit SKU
@@ -57,6 +58,13 @@ link layer (seq + gap retransmit), NMEA parser, `Radio` interface + real
 SX1262 driver, host JSON decoder, bench `Makefile`
 (`build/flashA/flashB/linktest/cap/decode/selftest`).
 
+**2026-11-25 update:** asset reorg for the final design (Wio-S3 docs moved
+to the wio sub-project; L76K doc set + RM3100-CB KiCad symbol/footprints
+added; all duplicates removed, incl. a reference-design zip from
+Jeremy Erhardt). Requirements deltas: prefer off-the-shelf XIAO-series
+components; SPA shared with the wio sibling. L76K PCN reviewed:
+fix-LED removed only — pin/electrical interface unchanged.
+
 **Open / blocking:**
 - 🔶 **The one remaining unknown for the bench:** the 4 SX1262 **control
   pins** (CS/DIO1/BUSY/RST) in `include/xiao_pins.hpp` are `[BENCH-VERIFY]`
@@ -66,17 +74,16 @@ SX1262 driver, host JSON decoder, bench `Makefile`
   GNSS on-device verification, WiFi/BLE provisioning (off in normal op),
   Linux host client, SPA web app, history storage, field node (solar +
   LiFePO4 + PVC enclosure), range evaluation, CI/artifacting (REQ-015).
-- ⚠️ **No KiCad PCB design exists yet** — the folder name says "kicad", but
-  there are no `.kicad_pro/.sch/.pcb` files; only docs + datasheets.
-  `xaio-mag-lora_…` rename staged; the xiao README still references the old
-  filename in two places.
+- ⚠️ **No KiCad PCB design exists yet** — no `.kicad_pro/.sch/.pcb` files
+  yet, but the design inputs (symbols, footprints, reference designs) are
+  in place; plan in the umbrella `docs/pcb_design_plan.md`.
 - 160 MB on disk is the gitignored `.pio` toolchain cache, not source.
 
-### 2.3 `wio-mag-lora` (dormant)
-Empty git repo (no commits, no remotes). Contains a proposed-approach
-requirements file, `software_requirements.md`, and Wio-S3/SX1262/L76K
-datasheets. Superseded by xiao as the active path (Wio-S3 remains the later
-production form-factor target).
+### 2.3 `wio-mag-lora` (production variant)
+Initial commit 2026-11-25 (`6b2fefd`), no remotes yet. Requirements +
+software requirements + reference assets (incl. the official Seeed Wio-S3
+KiCad package) are committed. This is the home of the Wio-S3 production
+form factor; xiao remains the active bench/PoC path.
 
 ## 3. Recommended next steps
 
@@ -100,20 +107,22 @@ production form-factor target).
    P1-Pro power-wiring teardown (Q5).
 9. Range evaluation to the ≤1 km LoS target (REQ-017).
 
-**C. Housekeeping:**
-10. Decide the fate of `wio-mag-lora`: delete it, or keep it as the home for
-    `xaio-mag-ora` references in its README.
-11. Decide the fate of `wio-mag-lora`: delete it, or keep it as the home for
-    the later Wio-S3 production variant (in which case it needs its own
-    remotes and real content).
-11. Add CI to the xiao repo (REQ-015) — at minimum `run_host_test.sh` +
+**C. PCB design (plan: `docs/pcb_design_plan.md`):**
+10. Phase 1: P1-Pro teardown (Q5) + xiao carrier v1 around parts already
+    in hand; bench the carrier before ordering new hardware.
+11. Phase 2: wio carrier (production form factor) — port the
+    power/RF/sensor/GNSS blocks onto the Wio-S3 connector.
+12. Phase 3: host receiver — off-the-shelf USB LoRa dongle for the
+    mag-usb interop test; custom board only if production demands it.
+
+**D. Housekeeping:**
+13. Create Gitea/GitHub remotes for `wio-mag-lora` (kept as the home of
+    the Wio-S3 production variant).
+14. Add CI to the xiao repo (REQ-015) — at minimum `run_host_test.sh` +
     `decode.py --selftest` + `pio run -e native`.
-12. Fill in the completion-report evidence (sections 3–4) in
+15. Fill in the completion-report evidence (sections 3–4) in
     `kicad/xiao-mag-lora/project-docs/02-completion-report.md` as each
     requirement verifies.
-13. Start the KiCad design when the Wio-S3 modules arrive (production form
-    factor).
 
-**D. Push policy:** everything in this session is pushed to both remotes
-(umbrella `mag-lora` and `xiao-mag-lora`, Gitea + GitHub). Keep pushing
-as work lands.
+**E. Push policy:** everything pushed to both remotes (Gitea + GitHub);
+wio-mag-lora is local-only until remotes exist. Keep pushing as work lands.
