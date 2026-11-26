@@ -109,9 +109,11 @@ committing board B.
    carrier with the PoC firmware before ordering anything new.
 3. **Phase 2:** **wio carrier** — port power/RF/sensor/GNSS blocks onto the
    Wio-S3 connector; this is the production form factor.
-4. **Phase 3:** **host receiver** — off-the-shelf dongle first for the
-   interop test with mag-usb; custom board only if the production
-   requirement demands it.
+4. **Phase 3:** **host receiver** — started as the `kicad/host-mag-usb`
+   sub-project (2026-11-26, from the `USBStick-MagExtender` power-rail
+   seed): power-rail skeleton + requirements in place; open questions Q1–Q4
+   (interop surface, MCU, antenna, TX scope) to resolve before capture.
+   Off-the-shelf dongle may still shortcut the mag-usb interop test.
 5. **Phase 4:** production hardening — enclosures/sealing verification,
    BOM cost pass, panelization, range test (REQ-017).
 

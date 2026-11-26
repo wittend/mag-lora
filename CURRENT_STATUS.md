@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-26 — Phase 1 prep in xiao: P1/P1-Pro teardown checklist (`2a29a0c`) + `kicad/xiao-carrier` KiCad 10 scaffold (`974a038`). All repos pushed.
+**Last updated:** 2026-11-26 — host receiver started: `kicad/host-mag-usb` sub-project (initial commit `fb08706`, from the `USBStick-MagExtender` power-rail seed; requirements + README). Phase 1 prep (teardown checklist + xiao-carrier scaffold) landed earlier the same day. All repos pushed.
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -17,7 +17,8 @@ mag-lora/                          ← umbrella repo (this one)
 └── kicad/                         ← NOT tracked by the umbrella (gitignored)
     ├── README.md                  layout doc for the sub-projects
     ├── xiao-mag-lora/             ← standalone repo (active project)
-    └── wio-mag-lora/              ← standalone repo (production variant; initial commit, no remotes)
+    ├── wio-mag-lora/              ← standalone repo (production variant; initial commit, no remotes)
+    └── host-mag-usb/              ← standalone repo (host receiver; initial commit, no remotes)
 ```
 
 | Repo | Remotes | Role |
@@ -25,6 +26,7 @@ mag-lora/                          ← umbrella repo (this one)
 | `mag-lora` (umbrella) | Gitea `dave/mag-lora` · GitHub `wittend/mag-lora` | Shared requirements, cross-cutting docs, future Linux host client |
 | `kicad/xiao-mag-lora` | Gitea `dave/xiao-mag-lora` · GitHub `wittend/xiao-mag-lora` | **The active project** — node firmware + host decoder + design docs |
 | `kicad/wio-mag-lora` | — (no remotes yet) | Wio-S3 production variant — requirements + reference assets committed 2026-11-25 |
+| `kicad/host-mag-usb` | — (no remotes yet) | Host-side LoRa receiver USB dongle (Phase 3) — power-rail skeleton + requirements, 2026-11-26 |
 
 The umbrella intentionally does **not** track the sub-project repos (see
 `kicad/README.md`); each keeps its own history and remotes.
@@ -86,6 +88,16 @@ software requirements + reference assets (incl. the official Seeed Wio-S3
 KiCad package) are committed. This is the home of the Wio-S3 production
 form factor; xiao remains the active bench/PoC path.
 
+### 2.4 `host-mag-usb` (host receiver, Phase 3) — new 2026-11-26
+Standalone sub-repo (`fb08706`, no remotes yet). Seeded from Dave's
+`USBStick-MagExtender` project (July 2026, USB/I2C magnetometer extender
+power-rail skeleton: USB-C VBUS → AMS1117-3.3, ferrite bead, LEDs) —
+renamed to `host-mag-usb` and brought into the project. Vendor USB-C/ESD
+component libs retained (2sayle template origin, no upstream LICENSE —
+noted in its README). Requirements written (Q1 interop surface / Q2 MCU /
+Q3 antenna / Q4 TX scope open). ERC/DRC: only skeleton-typical noise
+(lib resync mismatches, text style, unconnected pads).
+
 ## 3. Recommended next steps
 
 **A. Prove the link (highest value, unblocks everything else):**
@@ -113,9 +125,10 @@ form factor; xiao remains the active bench/PoC path.
     run the P1 teardown (checklist in xiao `docs/`), then schematic capture.
 11. Phase 2: wio carrier (production form factor) — port the
     power/RF/sensor/GNSS blocks onto the Wio-S3 connector.
-12. Phase 3: host receiver — off-the-shelf USB LoRa dongle for the
-    mag-usb interop test. Existing USB-dongle KiCad template: `USBStick-MagExtender`
-    in `~/Projects/KiCad-dev/` (STM32F730 + USB-C + microSD).
+12. Phase 3: host receiver — `kicad/host-mag-usb` started (power-rail
+    skeleton + requirements). Resolve its Q1–Q4 (interop surface, MCU,
+    antenna, TX scope), then schematic capture; an off-the-shelf USB LoRa
+    dongle can shortcut the mag-usb interop test in parallel.
 
 **D. Housekeeping:**
 13. Create Gitea/GitHub remotes for `wio-mag-lora` (kept as the home of
@@ -127,4 +140,5 @@ form factor; xiao remains the active bench/PoC path.
     requirement verifies.
 
 **E. Push policy:** everything pushed to both remotes (Gitea + GitHub);
-wio-mag-lora is local-only until remotes exist. Keep pushing as work lands.
+wio-mag-lora and host-mag-usb are local-only until remotes exist. Keep
+pushing as work lands.
