@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-26 — mag-usb interop research done (host-mag-usb `b702b48`, `docs/magusb_interop.md`): **Q1 answered — Option A**: the dongle emulates the Pololu USB-I²C adapter + RM3100 + MCP9808, so stock mag-usb / mag-recorder / gmag_webui run unmodified. Earlier today: `host-mag-usb` sub-project created; Phase 1 prep (teardown checklist + xiao-carrier scaffold). All repos with remotes pushed.
+**Last updated:** 2026-11-26 — host-mag-usb decisions recorded (`813d98c`): **Q2 = ESP32-S3** (in-field config via WiFi + node parity), **Q4 = RX-only v1** (TX kept for future re-provisioning). Earlier today: mag-usb interop research done (`b702b48`) — **Q1 = Option A** (dongle emulates Pololu USB-I²C + RM3100 + MCP9808; stock PSWS stack unmodified); `host-mag-usb` sub-project created; Phase 1 prep (teardown checklist + xiao-carrier scaffold). All repos with remotes pushed.
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -99,7 +99,9 @@ noted in its README). **Q1 (interop surface) answered 2026-11-26** —
 adapter (115200 CDC-ACM) + RM3100 (0x20) + MCP9808, so stock mag-usb,
 mag-recorder, and gmag_webui run **unmodified**; fallback B (patch mag-usb)
 with a dongle input backend; bench path C (host-side JSONL relay) first.
-Q4 narrowed (RX-only v1 viable); Q2 (MCU) / Q3 (antenna) still open.
+**Q2 decided 2026-11-26: ESP32-S3** (in-field config via WiFi + node parity);
+**Q4 decided: RX-only v1** (TX kept for future re-provisioning); Q3 (antenna)
+still open.
 ERC/DRC: only skeleton-typical noise
 (lib resync mismatches, text style, unconnected pads).
 
@@ -131,8 +133,8 @@ ERC/DRC: only skeleton-typical noise
 11. Phase 2: wio carrier (production form factor) — port the
     power/RF/sensor/GNSS blocks onto the Wio-S3 connector.
 12. Phase 3: host receiver — `kicad/host-mag-usb` started (power-rail
-    skeleton + requirements). Q1 answered (emulate Pololu + RM3100 +
-    MCP9808, stock mag-usb unmodified); open Q2 (MCU) / Q3 (antenna) →
+    skeleton + requirements). Q1 (Option A), Q2 (ESP32-S3), Q4 (RX-only v1)
+    decided; open Q3 (antenna) →
     schematic capture. First interop test: bench a host-side JSONL relay
     against mag-recorder.
 
