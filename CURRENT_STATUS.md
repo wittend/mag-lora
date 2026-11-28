@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-27 — host-mag-usb autonomous pass: U1 pin map verified vs. stock symbol; R7 10 kΩ RFSW safe-boot pulldown added (GPIO3 strapping); footprints assigned for all but U1 (no stock S3-MINI-1 footprint); konnect MCP adopted for PCB work (board must be open in the KiCad editor). Gitea remotes live for all three kicad sub-projects.
+**Last updated:** 2026-11-27 (PCB session) — host-mag-usb: board rebuilt as 48×26 mm 2-layer; all 25 components placed via konnect with explicit coordinates (score_placement 100/100, no courtyard overlaps); U1 footprint courtyard trimmed to module body (antenna keep-out preserved as silk); U2 footprint rewritten to classic KiCad format; custom corner pad dropped from U1 thermal array.
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -18,8 +18,7 @@ mag-lora/                          ← umbrella repo (this one)
     ├── README.md                  layout doc for the sub-projects
     ├── xiao-mag-lora/             ← standalone repo (active project)
     ├── wio-mag-lora/              ← standalone repo (production variant; Gitea since 2026-11-27)
-    └── host-mag-usb/              ← standalone repo (host receiver; schematic v1; Gitea since 2026-11-27)
-    └── host-mag-usb/              ← standalone repo (host receiver; schematic v1, no remotes)
+    └── host-mag-usb/              ← standalone repo (host receiver; schematic v1 + placed PCB; Gitea since 2026-11-27)
 ```
 
 | Repo | Remotes | Role |
@@ -27,7 +26,7 @@ mag-lora/                          ← umbrella repo (this one)
 | `mag-lora` (umbrella) | Gitea `dave/mag-lora` · GitHub `wittend/mag-lora` | Shared requirements, cross-cutting docs, future Linux host client |
 | `kicad/xiao-mag-lora` | Gitea `dave/xiao-mag-lora` · GitHub `wittend/xiao-mag-lora` | **The active project** — node firmware + host decoder + design docs |
 | `kicad/wio-mag-lora` | Gitea `dave/wio-mag-lora` (2026-11-27) | Wio-S3 production variant — requirements + reference assets committed 2026-11-25 |
-| `kicad/host-mag-usb` | Gitea `dave/host-mag-usb` (2026-11-27) | Host-side LoRa receiver USB dongle (Phase 3) — schematic v1 generated 2026-11-26 (`71d0d83`) |
+| `kicad/host-mag-usb` | Gitea `dave/host-mag-usb` (2026-11-27) | Host-side LoRa receiver USB dongle (Phase 3) — schematic v1 (`71d0d83`), PCB placed 2026-11-27 (48×26 mm, 25 components, both sides) |
 
 The umbrella intentionally does **not** track the sub-project repos (see
 `kicad/README.md`); each keeps its own history and remotes.
@@ -114,14 +113,25 @@ netlist export matches `docs/dongle_design.md` on every net. 2026-11-27 work:
 - **R7 10 kΩ RFSW pulldown added** — found while verifying: RF_SW needs HIGH
   for RX (Seeed datasheet) but sits on GPIO3, an S3 boot-strapping pin (HIGH
   at reset = download mode). Pulldown = safe boot; firmware drives HIGH.
-- **Footprints assigned** for all components except U1 (no stock
-  ESP32-S3-MINI-1 footprint — must author/source).
+- **Footprints assigned** for all 25 components. U1 sourced from a
+  community library (VanceVagell/kv4p-ht, Espressif.pretty) and cross-
+  verified pad-for-pad against a second source (abhishekxece,
+  64/65 exact; pad 61 = thermal); its courtyard was trimmed to the module
+  body with the antenna keep-out kept as a silk outline; one decorative
+  custom corner pad dropped from the 3×3 thermal array.
+- **U2 footprint rewritten** to classic KiCad format (the 20260206 version
+  with `footprint_text` broke konnect's IPC parser).
+- **PCB placed** (konnect, explicit coordinates): 48×26 mm 2-layer; 15 top
+  (J1 edge USB-C, power chain, S3-MINI-1, LoRa module, SPI resistors in the
+  gap column) + 10 bottom (SW1, R3, D2, C4, TP1-6). `score_placement` 100,
+  zero courtyard overlaps, all inside outline. DRC + routing pending.
 ERC residual benign: 33 `pin_not_connected` = intentional NCs; 77
 `endpoint_off_grid` (cosmetic); 3 `footprint_link_issues` (CLI lib-table
 resolution).
-**PCB next step needs the board open in the KiCad PCB editor** (konnect's pcb
-toolsets drive placement via IPC; the July-seed orphan footprints must be
-cleared first).
+**PCB next steps (in KiCad editor):** save the board (Ctrl+S — konnect has no
+save tool; placement lives in the editor until saved), run DRC, then route:
+power rails first, USB-D pair 90° bends ≤2, SDA/SCL 90° only, no copper in
+the S3 antenna zone. Then commit board + Gerbers.
 
 KiCad 10 gotchas learned while building the generator (worth keeping):
 - embedded `lib_symbols` names must be **qualified** (`Device:C`) to match the
