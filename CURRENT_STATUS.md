@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-27 — **Gitea remotes created + pushed for `wio-mag-lora` and `host-mag-usb`** (parallel standalone repos, matching the xiao precedent — decision rationale in this file's history / `kicad/README.md`). All three kicad sub-projects now have Gitea remotes; only GitHub mirrors for xiao exist so far. 2026-11-26: host-mag-usb schematic v1 generated + netlist-verified (`71d0d83`); Q1–Q4 all decided.
+**Last updated:** 2026-11-27 — host-mag-usb autonomous pass: U1 pin map verified vs. stock symbol; R7 10 kΩ RFSW safe-boot pulldown added (GPIO3 strapping); footprints assigned for all but U1 (no stock S3-MINI-1 footprint); konnect MCP adopted for PCB work (board must be open in the KiCad editor). Gitea remotes live for all three kicad sub-projects.
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -104,15 +104,24 @@ with a dongle input backend; bench path C (host-side JSONL relay) first.
 **Q4 decided: RX-only v1** (TX kept for future re-provisioning);
 **Q3 decided 2026-11-26: IPEX + whip (or IPEX→SMA pigtail)** — the module's own IPEX connector satisfies this.
 
-**Schematic v1 — generated + verified 2026-11-26** (`71d0d83`): `tools/gen_schematic.py`
-writes the full `.kicad_sch` (24 components, 15 embedded lib symbols) from a
-declarative per-component pin-map; `kicad-cli sch export netlist` output matches
-`docs/dongle_design.md` on every net. ERC residual is benign: 33
-`pin_not_connected` = intentional NCs (unused U1 GPIOs, J1 B-row/SBU, U2 ANT);
-75 `endpoint_off_grid` = off-grid symbol geometry (cosmetic); 17
-`footprint_link_issues` = footprints not yet assigned (U2's is authored in
-`Libraries/fplibs.pretty/`). Open: assign footprints, verify U1 pin map against
-the ESP32-S3-MINI-1 datasheet (`[VERIFY-AGAINST-DATASHEET]`), PCB layout.
+**Schematic v1 — generated + verified 2026-11-26** (`71d0d83`), **hardened 2026-11-27**
+(`d325de2`, `02c2a3b`): `tools/gen_schematic.py` writes the full `.kicad_sch` (25
+components, 15 embedded lib symbols) from a declarative per-component pin-map;
+netlist export matches `docs/dongle_design.md` on every net. 2026-11-27 work:
+- **U1 pin map verified** (all 12 signal pads + 3V3 + EN + 21 hidden GNDs)
+  cross-checked against the stock `RF_Module:ESP32-S3-MINI-1` symbol; Espressif
+  datasheet cross-check still open (JS-gated fetch).
+- **R7 10 kΩ RFSW pulldown added** — found while verifying: RF_SW needs HIGH
+  for RX (Seeed datasheet) but sits on GPIO3, an S3 boot-strapping pin (HIGH
+  at reset = download mode). Pulldown = safe boot; firmware drives HIGH.
+- **Footprints assigned** for all components except U1 (no stock
+  ESP32-S3-MINI-1 footprint — must author/source).
+ERC residual benign: 33 `pin_not_connected` = intentional NCs; 77
+`endpoint_off_grid` (cosmetic); 3 `footprint_link_issues` (CLI lib-table
+resolution).
+**PCB next step needs the board open in the KiCad PCB editor** (konnect's pcb
+toolsets drive placement via IPC; the July-seed orphan footprints must be
+cleared first).
 
 KiCad 10 gotchas learned while building the generator (worth keeping):
 - embedded `lib_symbols` names must be **qualified** (`Device:C`) to match the
