@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-27 (PCB session) — host-mag-usb PCB v1 layout complete: **48×30 mm, 2-layer, single-sided assembly** (all 25 parts on the front, per Dave's requirement); konnect `score_placement` 100/100; `kicad-cli` DRC **0 errors** (U2 pad geometry fixed, D1 vendor-BGA local rules, U1/J1 courtyard trims). Next: *Update PCB from Schematic* in the editor (assigns nets), then routing.
+**Last updated:** 2026-11-28 (net-assignment session) — host-mag-usb PCB: **full netlist assigned** (konnect `update_pcb_from_schematic`, 137 pads, 0 conflicts) after fixing two wrong parts: **J1 was a microSD slot** (`DM3BT-DSF-PEJS` mis-copied from the 2sayle seed project — its LCEDA symbol even carries SD-card pins) → now the real **XKB U262-16XN USB-C 16P** (stock footprint, LCSC C319148, same part as the Adafruit Feather USB-C board); **D1** (unverifiable vendor ESD BGA) → stock **USBLC6-2SC6** SOT-23-6. DRC **0 errors** (board `min_hole_clearance` 0.30→0.15 for the XKB's NPTH vendor geometry). Next: routing, then Gerbers.
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -26,7 +26,7 @@ mag-lora/                          ← umbrella repo (this one)
 | `mag-lora` (umbrella) | Gitea `dave/mag-lora` · GitHub `wittend/mag-lora` | Shared requirements, cross-cutting docs, future Linux host client |
 | `kicad/xiao-mag-lora` | Gitea `dave/xiao-mag-lora` · GitHub `wittend/xiao-mag-lora` | **The active project** — node firmware + host decoder + design docs |
 | `kicad/wio-mag-lora` | Gitea `dave/wio-mag-lora` (2026-11-27) | Wio-S3 production variant — requirements + reference assets committed 2026-11-25 |
-| `kicad/host-mag-usb` | Gitea `dave/host-mag-usb` (2026-11-27) | Host-side LoRa receiver USB dongle (Phase 3) — schematic v1 (`71d0d83`), PCB v1 layout 2026-11-27 (`c78d516`) — 48×30 mm, 2-layer, single-sided, DRC-clean |
+| `kicad/host-mag-usb` | Gitea `dave/host-mag-usb` (2026-11-27) | Host-side LoRa receiver USB dongle (Phase 3) — schematic v1 (`71d0d83`), PCB layout (`c78d516`), **J1/D1 fixed + nets assigned, DRC-clean** (`acb66c7`) |
 
 The umbrella intentionally does **not** track the sub-project repos (see
 `kicad/README.md`); each keeps its own history and remotes.
@@ -133,15 +133,16 @@ netlist export matches `docs/dongle_design.md` on every net. 2026-11-27 work:
   J1 courtyard X ±7.0 (vendor cable-bend conservatism); U1 courtyard ±7.25
   with antenna keep-out as silk. Full layout map in the sub-repo
   `docs/dongle_design.md` §9.
-ERC residual benign: 33 `pin_not_connected` = intentional NCs; 77
-`endpoint_off_grid` (cosmetic); 3 `footprint_link_issues` (CLI lib-table
+ERC residual benign: 31 `pin_not_connected` = intentional NCs; 82
+`endpoint_off_grid` (cosmetic); 2 `footprint_link_issues` (CLI lib-table
 resolution).
-**PCB next steps:** (1) Dave opens the project in KiCad → *Update PCB from
-Schematic* (nets are not yet assigned; konnect has no sync tool and no CLI
-equivalent); (2) re-run DRC (same-net pairs like D1 A1/A2 clear
-automatically); (3) route — power rails first, USB-D pair with ≤2 right-
-angle bends, no copper in the S3 antenna zone; (4) cosmetic silk pass; (5)
-commit + Gerbers.
+**PCB state 2026-11-28** (`acb66c7`): nets assigned via konnect
+`update_pcb_from_schematic` (`differing_footprints: replace`) — 23
+footprints updated, J1/D1 replaced, 137 pads netted, 0 conflicts; J1
+re-rotated to the left edge (Feather-verified 2.92 mm inset, rot 270).
+**Next:** route (power rails → USB-D ≤2 right-angle bends → no copper in
+the S3 antenna zone), bottom GND pour, cosmetic silk pass, commit +
+Gerbers.
 
 KiCad 10 gotchas learned while building the generator (worth keeping):
 - embedded `lib_symbols` names must be **qualified** (`Device:C`) to match the
@@ -183,9 +184,10 @@ KiCad 10 gotchas learned while building the generator (worth keeping):
     power/RF/sensor/GNSS blocks onto the Wio-S3 connector.
 12. Phase 3: host receiver — `kicad/host-mag-usb`: Q1–Q4 all decided (Option A
     interop, ESP32-S3, IPEX+whip, RX-only v1); **schematic v1 generated +
-    netlist-verified** (`71d0d83`). Next: footprints, U1 pin-map datasheet
-    check, PCB layout. First interop test: bench a host-side JSONL relay
-    against mag-recorder.
+    netlist-verified** (`71d0d83`); **PCB v1 laid out, J1/D1 identities fixed,
+    full netlist assigned, DRC-clean 2026-11-28** (`acb66c7`). Next: routing +
+    Gerbers. First interop test: bench a host-side JSONL relay against
+    mag-recorder.
 
 **D. Housekeeping:**
 13. ~~Create Gitea remotes for `wio-mag-lora` / `host-mag-usb`~~ — **done 2026-11-27** (both
@@ -197,6 +199,5 @@ KiCad 10 gotchas learned while building the generator (worth keeping):
     `kicad/xiao-mag-lora/project-docs/02-completion-report.md` as each
     requirement verifies.
 
-**E. Push policy:** everything pushed to both remotes (Gitea + GitHub);
-wio-mag-lora and host-mag-usb are local-only until remotes exist. Keep
-pushing as work lands.
+**E. Push policy:** umbrella + xiao pushed to both remotes (Gitea + GitHub);
+wio-mag-lora + host-mag-usb to Gitea. Keep pushing as work lands.
