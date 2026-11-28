@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-26 — `host-mag-usb` **schematic v1 generated + netlist-verified** (`71d0d83`): `tools/gen_schematic.py` builds the full sheet from a declarative pin-map; `kicad-cli` netlist export matches `docs/dongle_design.md` rail-by-rail (VBUS → F1 → +3.3V → U3 → +3.3VA; SPI through 47R series; USB-C through ESD; all LORA nets correct). Also: **Q3 decided — IPEX + whip/pigtail** (requirements). Earlier today: Q2 = ESP32-S3 (`813d98c`), Q1 = Option A mag-usb interop (`b702b48`).
+**Last updated:** 2026-11-27 — **Gitea remotes created + pushed for `wio-mag-lora` and `host-mag-usb`** (parallel standalone repos, matching the xiao precedent — decision rationale in this file's history / `kicad/README.md`). All three kicad sub-projects now have Gitea remotes; only GitHub mirrors for xiao exist so far. 2026-11-26: host-mag-usb schematic v1 generated + netlist-verified (`71d0d83`); Q1–Q4 all decided.
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -17,7 +17,8 @@ mag-lora/                          ← umbrella repo (this one)
 └── kicad/                         ← NOT tracked by the umbrella (gitignored)
     ├── README.md                  layout doc for the sub-projects
     ├── xiao-mag-lora/             ← standalone repo (active project)
-    ├── wio-mag-lora/              ← standalone repo (production variant; initial commit, no remotes)
+    ├── wio-mag-lora/              ← standalone repo (production variant; Gitea since 2026-11-27)
+    └── host-mag-usb/              ← standalone repo (host receiver; schematic v1; Gitea since 2026-11-27)
     └── host-mag-usb/              ← standalone repo (host receiver; schematic v1, no remotes)
 ```
 
@@ -25,8 +26,8 @@ mag-lora/                          ← umbrella repo (this one)
 |---|---|---|
 | `mag-lora` (umbrella) | Gitea `dave/mag-lora` · GitHub `wittend/mag-lora` | Shared requirements, cross-cutting docs, future Linux host client |
 | `kicad/xiao-mag-lora` | Gitea `dave/xiao-mag-lora` · GitHub `wittend/xiao-mag-lora` | **The active project** — node firmware + host decoder + design docs |
-| `kicad/wio-mag-lora` | — (no remotes yet) | Wio-S3 production variant — requirements + reference assets committed 2026-11-25 |
-| `kicad/host-mag-usb` | — (no remotes yet) | Host-side LoRa receiver USB dongle (Phase 3) — schematic v1 generated 2026-11-26 (`71d0d83`) |
+| `kicad/wio-mag-lora` | Gitea `dave/wio-mag-lora` (2026-11-27) | Wio-S3 production variant — requirements + reference assets committed 2026-11-25 |
+| `kicad/host-mag-usb` | Gitea `dave/host-mag-usb` (2026-11-27) | Host-side LoRa receiver USB dongle (Phase 3) — schematic v1 generated 2026-11-26 (`71d0d83`) |
 
 The umbrella intentionally does **not** track the sub-project repos (see
 `kicad/README.md`); each keeps its own history and remotes.
@@ -83,13 +84,13 @@ fix-LED removed only — pin/electrical interface unchanged.
 - 160 MB on disk is the gitignored `.pio` toolchain cache, not source.
 
 ### 2.3 `wio-mag-lora` (production variant)
-Initial commit 2026-11-25 (`6b2fefd`), no remotes yet. Requirements +
+Initial commit 2026-11-25 (`6b2fefd`); **Gitea remote `dave/wio-mag-lora` pushed 2026-11-27.** Requirements +
 software requirements + reference assets (incl. the official Seeed Wio-S3
 KiCad package) are committed. This is the home of the Wio-S3 production
 form factor; xiao remains the active bench/PoC path.
 
 ### 2.4 `host-mag-usb` (host receiver, Phase 3) — new 2026-11-26
-Standalone sub-repo (`fb08706`, no remotes yet). Seeded from Dave's
+Standalone sub-repo (`fb08706`; **Gitea `dave/host-mag-usb` pushed 2026-11-27**). Seeded from Dave's
 `USBStick-MagExtender` project (July 2026, USB/I2C magnetometer extender
 power-rail skeleton: USB-C VBUS → AMS1117-3.3, ferrite bead, LEDs) —
 renamed to `host-mag-usb` and brought into the project. Vendor USB-C/ESD
@@ -158,8 +159,9 @@ KiCad 10 gotchas learned while building the generator (worth keeping):
     against mag-recorder.
 
 **D. Housekeeping:**
-13. Create Gitea/GitHub remotes for `wio-mag-lora` (kept as the home of
-    the Wio-S3 production variant).
+13. ~~Create Gitea remotes for `wio-mag-lora` / `host-mag-usb`~~ — **done 2026-11-27** (both
+    pushed; see §1 table). GitHub mirrors: open, on request.
+13a. Add GitHub mirrors (`wittend/*`) for wio + host-mag-usb — parity with xiao, if wanted.
 14. Add CI to the xiao repo (REQ-015) — at minimum `run_host_test.sh` +
     `decode.py --selftest` + `pio run -e native`.
 15. Fill in the completion-report evidence (sections 3–4) in
