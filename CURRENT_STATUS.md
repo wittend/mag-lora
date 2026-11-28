@@ -1,7 +1,7 @@
 # mag-lora — Current Status
 
 **Date:** 2026-11-23 · **Snapshot of:** repo organization + component status, with recommended next steps.
-**Last updated:** 2026-11-27 (PCB session) — host-mag-usb: board rebuilt as 48×26 mm 2-layer; all 25 components placed via konnect with explicit coordinates (score_placement 100/100, no courtyard overlaps); U1 footprint courtyard trimmed to module body (antenna keep-out preserved as silk); U2 footprint rewritten to classic KiCad format; custom corner pad dropped from U1 thermal array.
+**Last updated:** 2026-11-27 (PCB session) — host-mag-usb PCB v1 layout complete: **48×30 mm, 2-layer, single-sided assembly** (all 25 parts on the front, per Dave's requirement); konnect `score_placement` 100/100; `kicad-cli` DRC **0 errors** (U2 pad geometry fixed, D1 vendor-BGA local rules, U1/J1 courtyard trims). Next: *Update PCB from Schematic* in the editor (assigns nets), then routing.
 **Convention:** keep this file current with each commit that changes project state.
 
 ## 1. Repository organization
@@ -26,7 +26,7 @@ mag-lora/                          ← umbrella repo (this one)
 | `mag-lora` (umbrella) | Gitea `dave/mag-lora` · GitHub `wittend/mag-lora` | Shared requirements, cross-cutting docs, future Linux host client |
 | `kicad/xiao-mag-lora` | Gitea `dave/xiao-mag-lora` · GitHub `wittend/xiao-mag-lora` | **The active project** — node firmware + host decoder + design docs |
 | `kicad/wio-mag-lora` | Gitea `dave/wio-mag-lora` (2026-11-27) | Wio-S3 production variant — requirements + reference assets committed 2026-11-25 |
-| `kicad/host-mag-usb` | Gitea `dave/host-mag-usb` (2026-11-27) | Host-side LoRa receiver USB dongle (Phase 3) — schematic v1 (`71d0d83`), PCB placed 2026-11-27 (48×26 mm, 25 components, both sides) |
+| `kicad/host-mag-usb` | Gitea `dave/host-mag-usb` (2026-11-27) | Host-side LoRa receiver USB dongle (Phase 3) — schematic v1 (`71d0d83`), PCB v1 layout 2026-11-27 (`c78d516`) — 48×30 mm, 2-layer, single-sided, DRC-clean |
 
 The umbrella intentionally does **not** track the sub-project repos (see
 `kicad/README.md`); each keeps its own history and remotes.
@@ -121,17 +121,27 @@ netlist export matches `docs/dongle_design.md` on every net. 2026-11-27 work:
   custom corner pad dropped from the 3×3 thermal array.
 - **U2 footprint rewritten** to classic KiCad format (the 20260206 version
   with `footprint_text` broke konnect's IPC parser).
-- **PCB placed** (konnect, explicit coordinates): 48×26 mm 2-layer; 15 top
-  (J1 edge USB-C, power chain, S3-MINI-1, LoRa module, SPI resistors in the
-  gap column) + 10 bottom (SW1, R3, D2, C4, TP1-6). `score_placement` 100,
-  zero courtyard overlaps, all inside outline. DRC + routing pending.
+- **PCB placed + DRC-clean** (konnect, explicit coordinates): **48×30 mm
+  2-layer, single-sided assembly** — all 25 parts front (Dave's requirement;
+  4 layers rejected, bottom stays a clean GND pour). J1 USB-C left edge,
+  power chain in the J1–U1 column, U1 S3-MINI-1 center (antenna strip to the
+  top edge), SPI resistors in the 1.85 mm U1–U2 gap, U2 LoRa right edge,
+  bottom band = TPs + SW1 + LED + C4 (opposite the antenna zone).
+  `score_placement` 100, zero courtyard overlaps. **DRC: 0 errors** — fixes:
+  U2 pads 1.4×1.05 @ 1.27 pitch (0.22 mm gaps, no mask bridges); D1 local
+  clearance 0.1 / mask margin 0.05 (vendor BGA 0.1461 mm DN/DP spacing);
+  J1 courtyard X ±7.0 (vendor cable-bend conservatism); U1 courtyard ±7.25
+  with antenna keep-out as silk. Full layout map in the sub-repo
+  `docs/dongle_design.md` §9.
 ERC residual benign: 33 `pin_not_connected` = intentional NCs; 77
 `endpoint_off_grid` (cosmetic); 3 `footprint_link_issues` (CLI lib-table
 resolution).
-**PCB next steps (in KiCad editor):** save the board (Ctrl+S — konnect has no
-save tool; placement lives in the editor until saved), run DRC, then route:
-power rails first, USB-D pair 90° bends ≤2, SDA/SCL 90° only, no copper in
-the S3 antenna zone. Then commit board + Gerbers.
+**PCB next steps:** (1) Dave opens the project in KiCad → *Update PCB from
+Schematic* (nets are not yet assigned; konnect has no sync tool and no CLI
+equivalent); (2) re-run DRC (same-net pairs like D1 A1/A2 clear
+automatically); (3) route — power rails first, USB-D pair with ≤2 right-
+angle bends, no copper in the S3 antenna zone; (4) cosmetic silk pass; (5)
+commit + Gerbers.
 
 KiCad 10 gotchas learned while building the generator (worth keeping):
 - embedded `lib_symbols` names must be **qualified** (`Device:C`) to match the
